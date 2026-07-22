@@ -1,0 +1,42 @@
+{
+  "id": "animeunity-ita",
+  "name": "AnimeUnity (ITA)",
+  "contentType": "video",
+  "contractVersion": 3,
+  "moduleVersion": "1.0.0",
+  "description": "AnimeUnity IT source for Synthetiq Player.",
+  "moduleFamilyId": "animeunity_ita",
+  "moduleIdentity": "SP-VID-ANIMEUNITY-ITA",
+  "moduleIdentityNumber": 100,
+  "releaseTrack": "stable",
+  "config": {
+    "runtime": {
+      "entry": "index.js",
+      "mode": "local"
+    },
+    "caps": {
+      "homeMaxResults": 30,
+      "maxResponseBytes": 1048576,
+      "timeoutMs": 30000,
+      "maxConcurrentRequests": 4
+    },
+    "baseUrl": "https://www.animeunity.so",
+    "streamHeaders": {
+      "Referer": "https://vixcloud.co/",
+      "Origin": "https://vixcloud.co"
+    },
+    "host_allowlist": [
+      "www.animeunity.so",
+      "animeunity.so",
+      "vixcloud.co",
+      "api.animeunity.so"
+    ],
+    "legacyModuleIds": [
+      "animeunity"
+    ],
+    "markerCatalog": "episode",
+    "supportsEpisodeMarkers": true,
+    "markerFamily": "episode"
+  },
+  "moduleStatus": "active"
+}

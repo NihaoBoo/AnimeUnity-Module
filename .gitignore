@@ -1,0 +1,17 @@
+# Test files
+test.js
+
+# AI Environment & Logs
+.contextignore
+SKILL.md
+global_ai_tools_instructions.md
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
