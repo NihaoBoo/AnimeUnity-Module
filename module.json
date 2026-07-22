@@ -3,7 +3,7 @@
   "name": "AnimeUnity (ITA)",
   "contentType": "video",
   "contractVersion": 3,
-  "moduleVersion": "1.0.0",
+  "moduleVersion": "1.1.0",
   "description": "AnimeUnity provider module for compatible media players and aggregators.",
   "moduleFamilyId": "animeunity_ita",
   "moduleIdentity": "SP-VID-ANIMEUNITY-ITA",
@@ -29,7 +29,10 @@
       "www.animeunity.so",
       "animeunity.so",
       "vixcloud.co",
-      "api.animeunity.so"
+      "api.animeunity.so",
+      "s4.anilist.co",
+      "img.animeunity.so",
+      "static.nexilia.it"
     ],
     "legacyModuleIds": [
       "animeunity"
