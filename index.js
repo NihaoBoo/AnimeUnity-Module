@@ -167,31 +167,65 @@ class VixcloudExtractor {
         return { streams: [] };
       }
 
-      let streamUrl = '';
-      const masterPlaylistMatch = res.body.match(/window\.masterPlaylist\s*=\s*{[^}]*url:\s*['"]([^'"]+)['"]/i);
-      if (masterPlaylistMatch && masterPlaylistMatch[1]) {
-        streamUrl = masterPlaylistMatch[1];
-      } else {
-        const streamsMatch = res.body.match(/window\.streams\s*=\s*(\[[^\]]+\])/i);
-        if (streamsMatch && streamsMatch[1]) {
-          const streams = safeJsonParse(streamsMatch[1]);
-          if (Array.isArray(streams) && streams.length > 0) {
-            const activeStream = streams.find(s => s.active) || streams[0];
-            streamUrl = activeStream.url;
+      const html = res.body;
+      const masterMatch = html.match(/window\.masterPlaylist\s*=\s*({[\s\S]*?});/i);
+      let masterUrl = '';
+
+      if (masterMatch) {
+        const raw = masterMatch[1];
+        const tokenMatch = raw.match(/'token':\s*'([^']+)'/);
+        const expiresMatch = raw.match(/'expires':\s*'([^']+)'/);
+        const urlMatch = raw.match(/url:\s*'([^']+)'/);
+        const asnMatch = raw.match(/'asn':\s*'([^']*)'/);
+
+        if (urlMatch && tokenMatch && expiresMatch) {
+          const baseUrl = urlMatch[1];
+          const token = tokenMatch[1];
+          const expires = expiresMatch[1];
+          const asn = asnMatch ? asnMatch[1] : '';
+          masterUrl = `${baseUrl}?token=${token}&expires=${expires}&asn=${asn}&h=1`;
+        }
+      }
+
+      if (!masterUrl) {
+        log('VixcloudExtractor could not parse masterPlaylist from embed page');
+        return { streams: [] };
+      }
+
+      const masterRes = await request(masterUrl, {
+        headers: {
+          'Referer': embedUrl,
+          'User-Agent': USER_AGENT
+        }
+      });
+
+      const streams = [];
+      if (masterRes.ok && masterRes.body && masterRes.body.includes('#EXTM3U')) {
+        const lines = masterRes.body.split('\n');
+        let currentLabel = 'Auto';
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line.startsWith('#EXT-X-STREAM-INF:')) {
+            const resMatch = line.match(/RESOLUTION=\d+x(\d+)/i);
+            if (resMatch) {
+              currentLabel = `${resMatch[1]}p`;
+            }
+          } else if (line.startsWith('http')) {
+            streams.push(currentLabel, line);
+            currentLabel = 'Auto';
           }
         }
       }
 
-      if (!streamUrl) {
-        log('VixcloudExtractor could not find masterPlaylist or streams in HTML');
-        return { streams: [] };
+      if (streams.length === 0) {
+        streams.push('Auto', masterUrl);
       }
 
       return {
-        streams: ['Auto', streamUrl],
+        streams: streams,
         headers: {
-          'Referer': 'https://vixcloud.co/',
-          'Origin': 'https://vixcloud.co'
+          'Referer': embedUrl,
+          'User-Agent': USER_AGENT
         }
       };
     } catch (e) {
