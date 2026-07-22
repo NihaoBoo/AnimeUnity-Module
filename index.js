@@ -191,8 +191,7 @@ class VixcloudExtractor {
         streams: ['Auto', streamUrl],
         headers: {
           'Referer': 'https://vixcloud.co/',
-          'Origin': 'https://vixcloud.co',
-          'User-Agent': USER_AGENT
+          'Origin': 'https://vixcloud.co'
         }
       };
     } catch (e) {
@@ -284,19 +283,12 @@ class AnimeUnityProvider extends BaseProvider {
 
       // Fallback: Scrape HTML from /archivio if API call failed
       log('API call returned empty or failed, falling back to /archivio HTML parse');
-      const archRes = await request(BASE_URL + '/archivio');
+      const searchUrl = isSearch ? `${BASE_URL}/archivio?title=${encodeURIComponent(q)}` : `${BASE_URL}/archivio`;
+      const archRes = await request(searchUrl);
       if (archRes.ok && archRes.body) {
         const recordsData = this.extractVueData(archRes.body, 'records');
         if (Array.isArray(recordsData)) {
-          let filtered = recordsData;
-          if (isSearch) {
-            const term = q.toLowerCase();
-            filtered = recordsData.filter(item => {
-              const name = (item.title || item.title_eng || item.title_it || '').toLowerCase();
-              return name.includes(term);
-            });
-          }
-          return filtered.map(item => this.mapAnimeItem(item)).filter(Boolean);
+          return recordsData.map(item => this.mapAnimeItem(item)).filter(Boolean);
         }
       }
 
