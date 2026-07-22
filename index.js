@@ -47,7 +47,9 @@ async function request(url, options) {
 
   try {
     if (typeof fetchv2 === 'function') {
-      const res = await fetchv2(url, headers, method, body);
+      const fetchHeaders = { ...headers };
+      delete fetchHeaders['User-Agent'];
+      const res = await fetchv2(url, fetchHeaders, method, body);
       const status = Number((res && res.status) || 0);
 
       let textBody = '';
@@ -234,7 +236,7 @@ class AnimeUnityProvider extends BaseProvider {
 
     return {
       href: href,
-      id: href,
+      id: String(id),
       title: title,
       image: image,
       poster: image,
@@ -340,14 +342,20 @@ class AnimeUnityProvider extends BaseProvider {
       if (!res.ok || !res.body) return [];
 
       const episodesData = this.extractVueData(res.body, 'episodes');
+      const isDubbedAnime = url.toLowerCase().includes('-ita');
       if (episodesData && Array.isArray(episodesData)) {
-        return episodesData.map(ep => ({
-          href: `${url}/${ep.id}`,
-          number: Number(ep.number),
-          title: `Episode ${ep.number}`,
-          subAvailable: true,
-          dubAvailable: false
-        }));
+        return episodesData.map(ep => {
+          const fName = String(ep.file_name || ep.link || '').toLowerCase();
+          const isDub = isDubbedAnime || fName.includes('ita');
+          const isSub = !isDub || fName.includes('jpn') || fName.includes('jap') || fName.includes('sub');
+          return {
+            href: `${url}/${ep.id}`,
+            number: Number(ep.number),
+            title: `Episode ${ep.number}`,
+            subAvailable: isSub,
+            dubAvailable: isDub
+          };
+        });
       }
 
       return [];
